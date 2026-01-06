@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON 解析工具</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-code"></i> JSON 解析工具</h1>
+            <p class="subtitle">在线解析、验证和格式化 JSON 数据</p>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-edit"></i> 输入 JSON</h2>
+                    <div class="tools">
+                        <button id="sampleBtn" class="btn btn-secondary">
+                            <i class="fas fa-file-code"></i> 加载示例
+                        </button>
+                        <button id="clearBtn" class="btn btn-secondary">
+                            <i class="fas fa-broom"></i> 清空
+                        </button>
+                    </div>
+                </div>
+                <textarea id="jsonInput" placeholder='输入 JSON 字符串，例如：
+{
+  "name": "John",
+  "age": 30,
+  "city": "New York",
+  "hobbies": ["reading", "music", "sports"],
+  "address": {
+    "street": "123 Main St",
+    "zipcode": "10001"
+  }
+}'></textarea>
+                <div class="input-footer">
+                    <div class="options">
+                        <label class="checkbox">
+                            <input type="checkbox" id="prettyOption" checked>
+                            <span>美化输出</span>
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" id="validateOption" checked>
+                            <span>验证格式</span>
+                        </label>
+                    </div>
+                    <div class="char-count">
+                        字符数: <span id="charCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="parseBtn" class="btn btn-primary">
+                    <i class="fas fa-play"></i> 解析 JSON
+                </button>
+                <button id="formatBtn" class="btn btn-secondary">
+                    <i class="fas fa-indent"></i> 格式化
+                </button>
+                <div class="api-status">
+                    <span id="statusIcon" class="status-icon offline">
+                        <i class="fas fa-circle"></i>
+                    </span>
+                    <span id="statusText">API 状态: 检查中...</span>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-file-alt"></i> 解析结果</h2>
+                    <div class="tools">
+                        <button id="copyBtn" class="btn btn-secondary" disabled>
+                            <i class="fas fa-copy"></i> 复制结果
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="errorContainer" class="error-container hidden">
+                    <div class="error-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span id="errorTitle">解析错误</span>
+                    </div>
+                    <div id="errorMessage" class="error-message"></div>
+                </div>
+                
+                <div id="resultContainer" class="result-container hidden">
+                    <div class="result-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">数据类型:</span>
+                            <span id="dataType" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">元素数量:</span>
+                            <span id="dataLength" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">原始长度:</span>
+                            <span id="originalLength" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">解析后长度:</span>
+                            <span id="parsedLength" class="stat-value">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="result-content">
+                        <pre id="jsonOutput"></pre>
+                    </div>
+                </div>
+                
+                <div id="emptyState" class="empty-state">
+                    <i class="fas fa-arrow-up"></i>
+                    <h3>等待输入</h3>
+                    <p>在上方输入 JSON 数据，然后点击"解析 JSON"按钮</p>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>JSON 解析工具 &copy; 2023 | 后端: Python Flask | 前端: 原生 JavaScript</p>
+            <p class="api-info">API 地址: <code id="apiUrl">http://localhost:5000</code></p>
+        </footer>
+    </div>
+
+    <div id="notification" class="notification hidden">
+        <span id="notificationText"></span>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
