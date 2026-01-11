@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通用折线图组件 - LineChart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.0"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: rgba(30, 40, 50, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            border: 1px solid #3a506b;
+        }
+        
+        header {
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+            border-bottom: 1px solid #3a506b;
+        }
+        
+        h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+        
+        .input-section {
+            flex: 1;
+            min-width: 350px;
+            padding: 25px;
+            border-right: 1px solid #3a506b;
+        }
+        
+        .chart-section {
+            flex: 2;
+            min-width: 600px;
+            padding: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #4facfe;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a5298;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: #00f2fe;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #a0c8ff;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid #3a506b;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            color: #e0e0e0;
+            margin-bottom: 10px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: flex;
+        }
+        
+        .file-path-input {
+            flex: 1;
+            border-radius: 8px 0 0 8px;
+            margin-bottom: 0;
+        }
+        
+        .browse-btn {
+            background: linear-gradient(to right, #2a5298, #1e3c72);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: auto;
+        }
+        
+        .browse-btn:hover {
+            background: linear-gradient(to right, #3a63b8, #2e4ca8);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: #0f2027;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            color: #888;
+        }
+        
+        .secondary-btn {
+            background: rgba(30, 60, 90, 0.7);
+            color: #a0c8ff;
+            border: 1px solid #3a506b;
+        }
+        
+        .secondary-btn:hover {
+            background: rgba(40, 80, 120, 0.7);
+            border-color: #4facfe;
+            color: #00f2fe;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-top: 10px;
+            background-color: rgba(20, 30, 40, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .data-display {
+            background-color: rgba(20, 30, 40, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #3a506b;
+        }
+        
+        .data-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #4facfe;
+        }
+        
+        pre {
+            background-color: rgba(10, 20, 30, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #90e0ef;
+            border: 1px solid #3a506b;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid #00f2fe;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-box {
+            background-color: rgba(30, 60, 90, 0.5);
+            border-left: 4px solid #4facfe;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box h3 {
+            color: #4facfe;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-box p {
+            color: #b0d0ff;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .metadata-box {
+            background-color: rgba(30, 60, 90, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px solid #3a506b;
+        }
+        
+        .metadata-title {
+            color: #4facfe;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .metadata-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #3a506b;
+        }
+        
+        .metadata-label {
+            color: #a0c8ff;
+            font-weight: 500;
+        }
+        
+        .metadata-value {
+            color: #00f2fe;
+            font-weight: 600;
+        }
+        
+        .api-info {
+            background-color: rgba(40, 70, 100, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 25px;
+            border: 1px dashed #4facfe;
+        }
+        
+        .api-title {
+            color: #00f2fe;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .api-url {
+            background-color: rgba(10, 20, 30, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            color: #90e0ef;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        
+        .method-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .method-get {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .method-post {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .sample-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .sample-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(30, 60, 90, 0.7);
+            border: 1px solid #3a506b;
+            border-radius: 5px;
+            color: #a0c8ff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .sample-btn:hover {
+            background: rgba(40, 80, 120, 0.7);
+            border-color: #4facfe;
+            color: #00f2fe;
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            background-color: rgba(255, 107, 107, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .success-message {
+            color: #51cf66;
+            background-color: rgba(81, 207, 102, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            border-left: 4px solid #51cf66;
+        }
+        
+        .chart-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            background-color: rgba(20, 30, 40, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #3a506b;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a0c8ff;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .switch-label {
+            margin-right: 10px;
+            color: #a0c8ff;
+            font-size: 0.9rem;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3a506b;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #4facfe;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7a9bb8;
+            font-size: 0.9rem;
+            border-top: 1px solid #3a506b;
+        }
+        
+        @media (max-width: 1000px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid #3a506b;
+            }
+            
+            .chart-section {
+                min-width: 100%;
+            }
+            
+            .chart-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-chart-line"></i> 通用折线图组件 - LineChart</h1>
+            <p class="subtitle">适用于所有 key-value 列表数据的可视化，支持自定义 API 端点</p>
+        </header>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2 class="section-title"><i class="fas fa-cogs"></i> 配置设置</h2>
+                
+                <div class="info-box">
+                    <h3><i class="fas fa-info-circle"></i> 使用说明</h3>
+                    <p>这是一个通用折线图组件，适用于任何返回 key-value 列表数据的 API。数据格式应为：{"data": {"key1":[值1,值2,...], "key2":[值1,值2,...]}, "x": ["标签1","标签2",...]}</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="apiEndpoint"><i class="fas fa-link"></i> API 端点</label>
+                    <input type="text" id="apiEndpoint" class="api-endpoint-input" value="http://127.0.0.1:5000/api/parseGpuMem">
+                </div>
+                
+                <div class="form-group">
+                    <label for="apiMethod"><i class="fas fa-exchange-alt"></i> 请求方法</label>
+                    <select id="apiMethod">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dataParam"><i class="fas fa-database"></i> 数据参数</label>
+                    <div class="file-input-wrapper">
+                        <input type="text" id="dataParam" class="file-path-input" placeholder="例如：raw_data_path=/var/log/data.log">
+                        <button type="button" class="browse-btn" id="browseBtn">浏览</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-sliders-h"></i> 示例数据</label>
+                    <div class="sample-buttons">
+                        <button type="button" id="example1" class="sample-btn">
+                            销售数据
+                        </button>
+                        <button type="button" id="example2" class="sample-btn">
+                            天气数据
+                        </button>
+                        <button type="button" id="example3" class="sample-btn">
+                            CPU 使用率
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="button" id="fetchDataBtn" class="btn">
+                        <i class="fas fa-cloud-download-alt"></i> 获取数据
+                    </button>
+                    <button type="button" id="loadExampleBtn" class="btn secondary-btn">
+                        <i class="fas fa-chart-bar"></i> 加载示例
+                    </button>
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>正在从 API 获取数据...</p>
+                </div>
+                
+                <div class="error-message" id="errorMessage">
+                    <i class="fas fa-exclamation-triangle"></i> <span id="errorText">发生错误，请检查 API 端点或网络连接。</span>
+                </div>
+                
+                <div class="success-message" id="successMessage">
+                    <i class="fas fa-check-circle"></i> <span id="successText">数据获取成功！</span>
+                </div>
+                
+                <div class="api-info">
+                    <h3 class="api-title"><i class="fas fa-code"></i> 支持的 API 格式</h3>
+                    <div class="api-url">
+                        <span class="method-badge method-get">GET</span> /api/data?param=value
+                    </div>
+                    <div class="api-url">
+                        <span class="method-badge method-post">POST</span> /api/data
+                    </div>
+                    <p style="font-size: 0.9rem; color: #a0c8ff; margin-top: 8px;">
+                        返回格式: <code style="color: #90e0ef;">{"data": {...}, "x": [...], "metadata": {...}}</code>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="chart-section">
+                <h2 class="section-title"><i class="fas fa-chart-area"></i> 数据可视化</h2>
+                
+                <div class="chart-controls">
+                    <div class="control-group">
+                        <label class="control-label">图表类型</label>
+                        <select id="chartType">
+                            <option value="line">折线图</option>
+                            <option value="bar">柱状图</option>
+                            <option value="radar">雷达图</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">X 轴标题</label>
+                        <input type="text" id="xAxisTitle" value="时间">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Y 轴标题</label>
+                        <input type="text" id="yAxisTitle" value="数值">
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="toggle-switch">
+                            <span class="switch-label">填充区域</span>
+                            <label class="switch">
+                                <input type="checkbox" id="fillArea" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="toggle-switch">
+                            <span class="switch-label">显示网格</span>
+                            <label class="switch">
+                                <input type="checkbox" id="showGrid" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="dataChart"></canvas>
+                </div>
+                
+                <div class="metadata-box" id="metadataBox" style="display: none;">
+                    <h3 class="metadata-title"><i class="fas fa-info-circle"></i> 数据元信息</h3>
+                    <div id="metadataContent"></div>
+                </div>
+                
+                <div class="data-display">
+                    <h3 class="data-title"><i class="fas fa-database"></i> 原始 JSON 数据</h3>
+                    <pre id="jsonData">数据将在此显示...</pre>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>通用折线图组件 (LineChart) &copy; 2023 | 支持所有 key-value 列表数据的可视化</p>
+        </footer>
+    </div>
+
+    <script>
+        // 初始化 Chart.js
+        let dataChart = null;
+        
+        // DOM 元素
+        const apiEndpointInput = document.getElementById('apiEndpoint');
+        const apiMethodSelect = document.getElementById('apiMethod');
+        const dataParamInput = document.getElementById('dataParam');
+        const fetchDataBtn = document.getElementById('fetchDataBtn');
+        const loadExampleBtn = document.getElementById('loadExampleBtn');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const successDiv = document.getElementById('successMessage');
+        const successText = document.getElementById('successText');
+        const jsonDataElement = document.getElementById('jsonData');
+        const browseBtn = document.getElementById('browseBtn');
+        const example1Btn = document.getElementById('example1');
+        const example2Btn = document.getElementById('example2');
+        const example3Btn = document.getElementById('example3');
+        const metadataBox = document.getElementById('metadataBox');
+        const metadataContent = document.getElementById('metadataContent');
+        const chartTypeSelect = document.getElementById('chartType');
+        const xAxisTitleInput = document.getElementById('xAxisTitle');
+        const yAxisTitleInput = document.getElementById('yAxisTitle');
+        const fillAreaCheckbox = document.getElementById('fillArea');
+        const showGridCheckbox = document.getElementById('showGrid');
+        
+        // 示例数据
+        const exampleData = {
+            sales: {
+                name: "销售数据示例",
+                data: {
+                    data: {
+                        "产品A": [120, 190, 300, 500, 700, 650, 800, 950, 1100, 1050],
+                        "产品B": [200, 300, 450, 600, 750, 900, 1050, 1200, 1350, 1500],
+                        "产品C": [80, 120, 180, 250, 320, 400, 480, 550, 620, 700]
+                    },
+                    x: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月"]
+                },
+                metadata: {
+                    description: "2023年产品销售数据",
+                    data_type: "sales",
+                    unit: "万元"
+                }
+            },
+            weather: {
+                name: "天气数据示例",
+                data: {
+                    data: {
+                        "北京": [2, 5, 10, 15, 20, 25, 28, 30, 25, 20, 15, 8],
+                        "上海": [8, 10, 15, 20, 25, 28, 32, 35, 30, 25, 20, 12],
+                        "广州": [15, 18, 22, 25, 28, 30, 32, 33, 30, 28, 24, 18]
+                    },
+                    x: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
+                },
+                metadata: {
+                    description: "2023年月平均气温",
+                    data_type: "weather",
+                    unit: "°C"
+                }
+            },
+            cpu: {
+                name: "CPU使用率示例",
+                data: {
+                    data: {
+                        "CPU1": [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70],
+                        "CPU2": [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75],
+                        "CPU3": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65]
+                    },
+                    x: ["00:00", "02:00", "04:00", "06:00", "08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"]
+                },
+                metadata: {
+                    description: "服务器CPU使用率监控",
+                    data_type: "cpu_usage",
+                    unit: "%"
+                }
+            }
+        };
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化一个空的图表
+            initEmptyChart();
+            
+            // 设置示例按钮事件
+            example1Btn.addEventListener('click', () => loadExampleData('sales'));
+            example2Btn.addEventListener('click', () => loadExampleData('weather'));
+            example3Btn.addEventListener('click', () => loadExampleData('cpu'));
+            
+            // 浏览按钮事件
+            browseBtn.addEventListener('click', function() {
+                // 模拟文件浏览，显示一个常见的数据参数示例
+                dataParamInput.value = 'raw_data_path=/var/log/data.log';
+                dataParamInput.focus();
+            });
+            
+            // 获取数据按钮事件
+            fetchDataBtn.addEventListener('click', function() {
+                const apiEndpoint = apiEndpointInput.value.trim();
+                const apiMethod = apiMethodSelect.value;
+                const dataParam = dataParamInput.value.trim();
+                
+                if (!apiEndpoint) {
+                    showError("请输入 API 端点");
+                    return;
+                }
+                
+                // 显示加载状态
+                showLoading(true);
+                hideMessages();
+                
+                // 从 API 获取数据
+                fetchDataFromAPI(apiEndpoint, apiMethod, dataParam);
+            });
+            
+            // 加载示例按钮事件
+            loadExampleBtn.addEventListener('click', function() {
+                loadExampleData('sales');
+            });
+            
+            // 图表控制事件
+            chartTypeSelect.addEventListener('change', updateChartSettings);
+            xAxisTitleInput.addEventListener('change', updateChartSettings);
+            yAxisTitleInput.addEventListener('change', updateChartSettings);
+            fillAreaCheckbox.addEventListener('change', updateChartSettings);
+            showGridCheckbox.addEventListener('change', updateChartSettings);
+            
+            // 默认加载一个示例
+            setTimeout(() => {
+                loadExampleData('sales');
+            }, 500);
+        });
+        
+        // 初始化空图表
+        function initEmptyChart() {
+            const ctx = document.getElementById('dataChart').getContext('2d');
+            
+            if (dataChart) {
+                dataChart.destroy();
+            }
+            
+            dataChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14
+                                },
+                                padding: 20,
+                                color: '#e0e0e0'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(20, 30, 40, 0.9)',
+                            titleColor: '#4facfe',
+                            bodyColor: '#e0e0e0',
+                            borderColor: '#3a506b',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '时间',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                color: '#a0c8ff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                display: true
+                            },
+                            ticks: {
+                                color: '#a0c8ff'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '数值',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                color: '#a0c8ff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                display: true
+                            },
+                            ticks: {
+                                color: '#a0c8ff'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 从 API 获取数据
+        async function fetchDataFromAPI(apiEndpoint, apiMethod, dataParam) {
+            try {
+                let url = apiEndpoint;
+                let options = { method: apiMethod };
+                
+                // 根据请求方法构建请求
+                if (apiMethod === 'GET') {
+                    // 对于 GET 请求，将参数添加到 URL
+                    if (dataParam) {
+                        // 检查 URL 是否已经有查询参数
+                        const separator = url.includes('?') ? '&' : '?';
+                        url += separator + dataParam;
+                    }
+                } else if (apiMethod === 'POST') {
+                    // 对于 POST 请求，将参数添加到请求体
+                    options.headers = {
+                        'Content-Type': 'application/json'
+                    };
+                    
+                    if (dataParam) {
+                        // 尝试解析数据参数为 JSON
+                        try {
+                            // 如果参数是 key=value 格式，转换为对象
+                            if (dataParam.includes('=') && !dataParam.startsWith('{')) {
+                                const params = new URLSearchParams(dataParam);
+                                const body = {};
+                                params.forEach((value, key) => {
+                                    body[key] = value;
+                                });
+                                options.body = JSON.stringify(body);
+                            } else {
+                                // 尝试直接解析为 JSON
+                                options.body = JSON.parse(dataParam);
+                            }
+                        } catch (e) {
+                            // 如果无法解析为 JSON，作为原始字符串发送
+                            options.body = dataParam;
+                        }
+                    }
+                }
+                
+                const response = await fetch(url, options);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.status === 'error') {
+                    throw new Error(result.error || '未知错误');
+                }
+                
+                // 处理成功响应
+                showLoading(false);
+                updateChart(result.data, result.x, result.metadata);
+                showSuccess(`成功从 API 获取数据`);
+                
+            } catch (error) {
+                showLoading(false);
+                showError(`无法从 API 获取数据: ${error.message}`);
+                console.error('API 请求错误:', error);
+            }
+        }
+        
+        // 加载示例数据
+        function loadExampleData(exampleKey) {
+            const example = exampleData[exampleKey];
+            if (!example) return;
+            
+            apiEndpointInput.value = `示例: ${example.name}`;
+            updateChart(example.data.data, example.data.x, example.metadata);
+            showSuccess(`已加载${example.name}`);
+        }
+        
+        // 更新图表
+        function updateChart(data, xLabels, metadata) {
+            // 显示 JSON 数据
+            jsonDataElement.textContent = JSON.stringify({data, x: xLabels, metadata}, null, 2);
+            
+            // 准备图表数据
+            const labels = xLabels || [];
+            const datasets = [];
+            
+            // 如果没有提供 xLabels，则使用数据点的最大长度生成标签
+            let maxLength = 0;
+            for (const key in data) {
+                if (data[key].length > maxLength) {
+                    maxLength = data[key].length;
+                }
+            }
+            
+            if (!xLabels || xLabels.length === 0) {
+                for (let i = 0; i < maxLength; i++) {
+                    labels.push(`点 ${i + 1}`);
+                }
+            }
+            
+            // 定义颜色方案
+            const colorPalette = [
+                { border: 'rgba(79, 172, 254, 1)', background: 'rgba(79, 172, 254, 0.1)' },
+                { border: 'rgba(255, 107, 107, 1)', background: 'rgba(255, 107, 107, 0.1)' },
+                { border: 'rgba(81, 207, 102, 1)', background: 'rgba(81, 207, 102, 0.1)' },
+                { border: 'rgba(255, 193, 7, 1)', background: 'rgba(255, 193, 7, 0.1)' },
+                { border: 'rgba(111, 66, 193, 1)', background: 'rgba(111, 66, 193, 0.1)' },
+                { border: 'rgba(23, 162, 184, 1)', background: 'rgba(23, 162, 184, 0.1)' }
+            ];
+            
+            // 为每个数据集创建图表数据
+            let colorIndex = 0;
+            for (const key in data) {
+                datasets.push({
+                    label: key,
+                    data: data[key],
+                    borderColor: colorPalette[colorIndex % colorPalette.length].border,
+                    backgroundColor: colorPalette[colorIndex % colorPalette.length].background,
+                    borderWidth: 3,
+                    fill: fillAreaCheckbox.checked,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 8
+                });
+                colorIndex++;
+            }
+            
+            // 更新图表类型
+            dataChart.config.type = chartTypeSelect.value;
+            
+            // 更新图表数据
+            dataChart.data.labels = labels;
+            dataChart.data.datasets = datasets;
+            
+            // 更新图表设置
+            updateChartSettings();
+            
+            // 重新渲染图表
+            dataChart.update();
+            
+            // 更新元数据
+            if (metadata) {
+                updateMetadata(metadata);
+                metadataBox.style.display = 'block';
+            } else {
+                metadataBox.style.display = 'none';
+            }
+            
+            // 隐藏错误消息
+            hideMessages();
+        }
+        
+        // 更新图表设置
+        function updateChartSettings() {
+            // 更新轴标题
+            dataChart.options.scales.x.title.text = xAxisTitleInput.value || 'X 轴';
+            dataChart.options.scales.y.title.text = yAxisTitleInput.value || 'Y 轴';
+            
+            // 更新网格显示
+            const showGrid = showGridCheckbox.checked;
+            dataChart.options.scales.x.grid.display = showGrid;
+            dataChart.options.scales.y.grid.display = showGrid;
+            
+            // 更新填充设置
+            const fillArea = fillAreaCheckbox.checked;
+            dataChart.data.datasets.forEach(dataset => {
+                dataset.fill = fillArea;
+            });
+            
+            // 重新渲染图表
+            dataChart.update();
+        }
+        
+        // 更新元数据
+        function updateMetadata(metadata) {
+            let html = '';
+            for (const key in metadata) {
+                let value = metadata[key];
+                
+                // 格式化时间戳
+                if (key === 'timestamp' && value) {
+                    try {
+                        const date = new Date(value);
+                        value = date.toLocaleString('zh-CN');
+                    } catch (e) {
+                        // 保持原值
+                    }
+                }
+                
+                // 处理数组
+                if (Array.isArray(value)) {
+                    value = value.join(', ');
+                }
+                
+                // 美化键名
+                const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                html += `
+                <div class="metadata-item">
+                    <span class="metadata-label">${formattedKey}:</span>
+                    <span class="metadata-value">${value}</span>
+                </div>
+                `;
+            }
+            metadataContent.innerHTML = html;
+        }
+        
+        // 显示/隐藏加载状态
+        function showLoading(show) {
+            loadingDiv.style.display = show ? 'block' : 'none';
+            fetchDataBtn.disabled = show;
+            fetchDataBtn.innerHTML = show 
+                ? '<i class="fas fa-spinner fa-spin"></i> 处理中...' 
+                : '<i class="fas fa-cloud-download-alt"></i> 获取数据';
+        }
+        
+        // 显示错误消息
+        function showError(message) {
+            errorText.textContent = message;
+            errorDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+        }
+        
+        // 显示成功消息
+        function showSuccess(message) {
+            successText.textContent = message;
+            successDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+        }
+        
+        // 隐藏所有消息
+        function hideMessages() {
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import traceback
+import time
 
 app = Flask(__name__)
 # 允许跨域请求
@@ -11,6 +12,69 @@ CORS(app)
 def health_check():
     """健康检查接口"""
     return jsonify({"status": "ok", "service": "JSON Parser API"})
+ 
+    
+@app.route('/api/parseSystrace', methods=['GET'])
+def parseSystrace():
+    
+    systrace_path=request.args.get("systrace_path")
+    time.sleep(10)
+    return jsonify({"status": "ok", "service": systrace_path})
+    
+@app.route('/api/parseGpuMem', methods=['GET'])
+def parseGpuMem():
+    raw_data_path=request.args.get("raw_data_path")
+    print(f"{raw_data_path}")
+    return jsonify({
+  "data": {
+    "Texture": [
+      10,
+      20,
+      30,
+      25,
+      40,
+      35,
+      50
+    ],
+    "Buffer": [
+      4,
+      7,
+      8,
+      12,
+      9,
+      15,
+      18
+    ],
+    "CL Shared": [
+      4,
+      10,
+      8,
+      21,
+      9,
+      15,
+      18
+    ]
+  },
+  "x": [
+    "13:30",
+    "13:41",
+    "13:42",
+    "13:43",
+    "13:44",
+    "13:45",
+    "13:46"
+  ],
+  "metadata": {
+    "description": "基础示例数据",
+    "timestamp": "2026-01-11T13:50:03.099Z",
+    "data_points": 14,
+    "categories": [
+      "Texture",
+      "Buffer"
+    ]
+  }
+}
+)
 
 @app.route('/api/parse', methods=['POST'])
 def parse_json():
